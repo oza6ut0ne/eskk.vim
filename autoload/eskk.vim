@@ -184,6 +184,8 @@ let s:MODE_LOCAL_KEYS = {
             \}
 " The number of 'eskk#filter()' was called.
 let s:filter_count = 0
+" Uppercase chars mapped with type=mode:*
+let s:uppercase_chars_mapped_for_mode_toggle = []
 " }}}
 
 
@@ -1302,6 +1304,8 @@ function! s:asym_prefilter(stash) abort "{{{
         " 'X' is phase:henkan-select:delete-from-dict
         " 'L' is mode:{hira,kata,hankata}:to-zenei
         return [char]
+    elseif index(s:uppercase_chars_mapped_for_mode_toggle, char) >= 0
+        return [char]
     elseif char =~# '^[A-Z]$'
         " Treat uppercase "A" in "SAkujo" as lowercase.
         "
@@ -1698,6 +1702,11 @@ function! eskk#_initialize() abort "{{{
         doautocmd User eskk-initialize-post
     endif
     " }}}
+
+    let s:uppercase_chars_mapped_for_mode_toggle = uniq(sort(values(map(filter(
+        \    copy(eskk#_get_eskk_mappings()),
+        \    'v:key =~# "^mode:" && get(v:val, "lhs", "") =~# "^[A-Z]$"'),
+        \    'v:val["lhs"]'))))
 
     " Save/Restore 'formatoptions'. {{{
     function! s:save_restore_formatoptions(enable) abort
